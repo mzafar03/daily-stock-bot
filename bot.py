@@ -1,11 +1,12 @@
 import yfinance as yf
 import pandas as pd
 import requests
+import os
 from datetime import datetime
 
 # ====== CONFIG ======
-BOT_TOKEN = "PASTE_YOUR_BOT_TOKEN"
-CHAT_ID = "PASTE_YOUR_CHAT_ID"
+BOT_TOKEN = "8269225957:AAEEWk98nWmLZe5ncUxGf4qRpxFdn7-ENUM"
+CHAT_ID = "123456789"
 CAPITAL = 100000
 
 stocks = [
