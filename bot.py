@@ -4,7 +4,7 @@ import requests
 from datetime import datetime
 
 # ================= CONFIG =================
-BOT_TOKEN = "8269225957:AAHzGpYQvT5jXEka9Be0nN08jLEmBVEI4zo"
+BOT_TOKEN = "8269225957:AAHkvOnQObJ9Novg2aQA91_Z51x0e-bKclQ"
 CHAT_ID = "1579119023"
 CAPITAL = 100000
 
