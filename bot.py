@@ -53,7 +53,8 @@ def generate_report():
         dma50 = round(last["50DMA"], 2)
         
         action = "HOLD"
-        if rsi < 40:
+        latest_rsi = rsi.iloc[-1]
+        if latest_rsi < 40:
             action = "ADD"
         elif rsi > 75:
             action = "EXIT"
