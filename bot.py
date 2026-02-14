@@ -1,12 +1,11 @@
 import yfinance as yf
 import pandas as pd
 import requests
-import os
 from datetime import datetime
 
-# ====== CONFIG ======
-BOT_TOKEN = "8269225957:AAEEWk98nWmLZe5ncUxGf4qRpxFdn7-ENUM"
-CHAT_ID = "123456789"
+# ================= CONFIG =================
+BOT_TOKEN = "YOUR_NEW_BOT_TOKEN"
+CHAT_ID = "YOUR_CHAT_ID"
 CAPITAL = 100000
 
 stocks = [
@@ -21,61 +20,96 @@ stocks = [
     "INFY.NS",
     "ITC.NS"
 ]
+# ===========================================
 
-# =====================
-
-def get_stock_data(symbol):
-    data = yf.download(symbol, period="3mo", interval="1d", progress=False)
-    data["50DMA"] = data["Close"].rolling(50).mean()
-    data["RSI"] = compute_rsi(data["Close"])
-    return data
 
 def compute_rsi(series, period=14):
     delta = series.diff()
     gain = delta.clip(lower=0)
     loss = -delta.clip(upper=0)
-    avg_gain = gain.rolling(period).mean()
-    avg_loss = loss.rolling(period).mean()
+
+    avg_gain = gain.rolling(window=period).mean()
+    avg_loss = loss.rolling(window=period).mean()
+
     rs = avg_gain / avg_loss
-    return 100 - (100 / (1 + rs))
+    rsi = 100 - (100 / (1 + rs))
+    return rsi
+
+
+def get_stock_data(symbol):
+    try:
+        data = yf.download(symbol, period="3mo", interval="1d", progress=False)
+
+        if data.empty:
+            return None
+
+        data["50DMA"] = data["Close"].rolling(50).mean()
+        data["RSI"] = compute_rsi(data["Close"])
+
+        return data
+
+    except Exception as e:
+        print(f"Error fetching {symbol}: {e}")
+        return None
+
 
 def generate_report():
-    message = f"📊 Daily Portfolio Report – {datetime.today().strftime('%d %b %Y')}\n\n"
-    
+    today = datetime.today().strftime('%d %b %Y')
+    message = f"📊 Daily Portfolio Report – {today}\n\n"
+
     allocation = CAPITAL / len(stocks)
-    total_value = 0
-    
+    total_invested = 0
+
     for stock in stocks:
         data = get_stock_data(stock)
+
+        if data is None or data.empty:
+            continue
+
         last = data.iloc[-1]
-        price = round(last["Close"], 2)
-        rsi = round(last["RSI"], 1)
-        dma50 = round(last["50DMA"], 2)
-        
+
+        price = round(float(last["Close"]), 2)
+        rsi = round(float(last["RSI"]), 1)
+        dma50 = round(float(last["50DMA"]), 2)
+
+        # ===== Signal Logic =====
         action = "HOLD"
-        latest_rsi = rsi.iloc[-1]
-        if latest_rsi < 40:
+
+        if rsi < 35 and price > dma50:
+            action = "STRONG BUY"
+        elif rsi < 40:
             action = "ADD"
         elif rsi > 75:
             action = "EXIT"
-        
-        message += f"{stock.replace('.NS','')}\n"
+        elif price < dma50:
+            action = "WEAK"
+
+        # ========================
+
+        message += f"🔹 {stock.replace('.NS','')}\n"
         message += f"CMP: ₹{price}\n"
         message += f"50DMA: ₹{dma50}\n"
         message += f"RSI: {rsi}\n"
-        message += f"Action: {action}\n"
+        message += f"Signal: {action}\n"
         message += "----------------------\n"
-        
-        total_value += allocation
-    
-    message += f"\nCapital: ₹{CAPITAL}"
-    message += f"\nInvested: ₹{total_value}"
-    
+
+        total_invested += allocation
+
+    message += f"\n💰 Capital: ₹{CAPITAL}"
+    message += f"\n📈 Allocated: ₹{int(total_invested)}"
+
     return message
+
 
 def send_telegram(message):
     url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
-    requests.post(url, data={"chat_id": CHAT_ID, "text": message})
+    payload = {
+        "chat_id": CHAT_ID,
+        "text": message
+    }
+
+    requests.post(url, data=payload)
+
 
 if __name__ == "__main__":
     report = generate_report()
