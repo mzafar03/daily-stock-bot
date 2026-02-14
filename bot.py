@@ -4,8 +4,8 @@ import requests
 from datetime import datetime
 
 # ================= CONFIG =================
-BOT_TOKEN = "YOUR_NEW_BOT_TOKEN"
-CHAT_ID = "YOUR_CHAT_ID"
+BOT_TOKEN = "8269225957:AAEEWk98nWmLZe5ncUxGf4qRpxFdn7-ENUM"
+CHAT_ID = "123456789"
 CAPITAL = 100000
 
 stocks = [
